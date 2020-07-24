@@ -3,7 +3,9 @@ const request = require('request');
 
 
 const url = 'http://localhost:8000/server/notice/' // 推送本地
-var socket = io('http://localhost:3000?token=asf23rwf23&parkinglot_id=86e98306-c9c8-11ea-8696-f45c89b1ee3f'); 
+// const url = 'http://localhost:8035/server/notice/'
+// var socket = io('http://localhost:3000?token=asf23rwf23&parkinglot_id=86e98306-c9c8-11ea-8696-f45c89b1ee3f'); 
+var socket = io('http://parkingtest.jietingtech.com?token=asf23rwf23&parkinglot_id=86e98306-c9c8-11ea-8696-f45c89b1ee3f');
 
 const post = (params)=>{
 	 

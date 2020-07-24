@@ -1,3 +1,5 @@
+// 部署在云端的node socketio 作为 server , 用于将消息通知到本地
+
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
@@ -23,14 +25,16 @@ app.get('/', function(req, res){
    res.render(__dirname + '/index.ejs', {name:'dsc'})
 });
 
-app.post('/publish', function(req, res){
+app.post('/publish', function(req, res){   // 接收 server 推送的消息
     var myobj = urlib.parse(req.url,true);
-    console.info(req.body.id)
-    var id = req.body.id
     console.info(req.body)
-    Cameras[id].emit('chat message', req.body.body);
-     
-    res.send({'name': 'asdf'}) 
+    
+    var id = req.body.id
+    
+    Cameras[id].emit('chat message', req.body.body);     // 数据下发到本地 node client
+    
+    console.info(['下发数据到: ', id , ', 内容: ', req.body.body].join(''))
+    res.send({'success': true}) 
 });
 
 
@@ -45,7 +49,7 @@ app.post('/publish', function(req, res){
 
 
 io.on('connection', function(socket){
-  console.info(socket.handshake)
+  
   let parkinglot_id = socket.handshake.query.parkinglot_id;
   Cameras[parkinglot_id] = socket
 
@@ -74,6 +78,6 @@ io.on('connection', function(socket){
 
 });
 
-http.listen(3000, function(){
+http.listen(3001, function(){
   console.log('listening on *:3000');
 });
