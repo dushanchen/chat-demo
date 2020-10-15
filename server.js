@@ -5,36 +5,44 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var bodyParser = require("body-parser");  
 const urlib = require("url"); 
-  
-// need it...  
-app.use(bodyParser.urlencoded({ extended: false }));  
 
+app.use(bodyParser.urlencoded({ extended: false }));  
 app.set('view engine','ejs');
 app.set('views', __dirname + '/views');
 
 
-Cameras = {}
+var ParkingLots = {}
  
 
 app.get('/', function(req, res){
     var myobj = urlib.parse(req.url,true);
     // console.info(myobj.query.id)
     // console.info(myobj.query.haha)
-   // res.sendFile(__dirname + '/index.html');
-   // res.send({'name': 'asdf'})
-   res.render(__dirname + '/index.ejs', {name:'dsc'})
+    // res.sendFile(__dirname + '/index.html');
+    // res.send({'name': 'asdf'})
+    res.render(__dirname + '/index.ejs', {name:'dsc'})
 });
 
-app.post('/publish', function(req, res){   // 接收 server 推送的消息
+
+
+app.post('/publish', function(req, res){         // 接收 server 推送的消息
     var myobj = urlib.parse(req.url,true);
     console.info(req.body)
     
     var id = req.body.id
+    console.info(ParkingLots)
+    try{
+        var parkinglot = ParkingLots[id]
+        parkinglot.emit('chat message', req.body.body);     // 数据下发到本地 node client
+
+        console.info(['下发数据到: ', id , ', 内容: ', req.body.body].join(''))
+        res.send({'success': true}) 
+
+    }catch(err){
+        console.error(['下发数据报错: ', err , ', 内容: ', req.body].join(''))
+        res.send({'success': false}) 
+    }
     
-    Cameras[id].emit('chat message', req.body.body);     // 数据下发到本地 node client
-    
-    console.info(['下发数据到: ', id , ', 内容: ', req.body.body].join(''))
-    res.send({'success': true}) 
 });
 
 
@@ -50,34 +58,36 @@ app.post('/publish', function(req, res){   // 接收 server 推送的消息
 
 io.on('connection', function(socket){
   
-  let parkinglot_id = socket.handshake.query.parkinglot_id;
-  Cameras[parkinglot_id] = socket
+    let parkinglot_id = socket.handshake.query.parkinglot_id;
+    ParkingLots[parkinglot_id] = socket
 
-  console.log('a user connected');
-  socket.broadcast.emit('hi');
-  
-  
-  socket.on('chat message', function(msg){
- 
-    io.emit('chat message', msg);
-    
-  });
+    console.log('a user connected');
+    console.log(ParkingLots);
+    socket.broadcast.emit('hi');
+      
+      
+    socket.on('chat message', function(msg){
+     
+        io.emit('chat message', msg);
+        console.info('server -> client : 成功')
+        
+    });
 
-  socket.on('define', function(cam_id){
-    console.info(cam_id)
-    Cameras[cam_id] = this
-    console.info(Cameras)
-  })
+    socket.on('define', function(cam_id){
+        console.info(cam_id)
+        ParkingLots[cam_id] = this
+        console.info(ParkingLots)
+    })
 
   
-  socket.on('disconnect', function(cam_id){
-    console.log('user disconnected');
-    delete(Cameras[cam_id])
-  });
+    socket.on('disconnect', function(cam_id){
+        console.log('user disconnected');
+        delete(ParkingLots[cam_id])
+    });
 
 
 });
 
 http.listen(3001, function(){
-  console.log('listening on *:3000');
+  console.log('listening on *:3001');
 });
