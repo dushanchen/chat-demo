@@ -2,12 +2,13 @@ const io = require('socket.io-client');
 const request = require('request');
 
 const LOCAL = 'http://localhost:8000'     // 本地服务器 地址
-const SERVER = 'http://localhost:3001'    // 本地socketio 地址
+const SERVER = 'http://127.0.0.1:3001'    // 本地socketio 地址
+// const SERVER = 'http://47.100.40.50:9000'    // 本地socketio 地址
 // const SERVER = 'http://parkingtest.jietingtech.com'
 
 
 
-const notice_url = LOCAL+'/server/notice/' // 推送本地
+const notice_url = LOCAL+'/server/notice/' // 推送本地url
 
 function post(url, params, callback){
 	request({

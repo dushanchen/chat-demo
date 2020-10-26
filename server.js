@@ -39,6 +39,7 @@ app.post('/publish', function(req, res){         // 接收 server 推送的消�
         res.send({'success': true}) 
 
     }catch(err){
+        console.error(err)
         console.error(['下发数据报错: ', err , ', 内容: ', req.body].join(''))
         res.send({'success': false}) 
     }
