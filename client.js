@@ -9,15 +9,19 @@ const urlib = require("url");
 
 app.use(bodyParser.urlencoded({ extended: false })); 
 
+const port = 3000
+
+
 const LOCAL = 'http://localhost:8000'     // 本地服务器 地址
 const SERVER = 'http://127.0.0.1:3001'    // 本地socketio 地址
-const port = 3000
-// const SERVER = 'http://47.100.40.50:9000'    // 本地socketio 地址
+
+// const SERVER = 'http://47.100.40.50:3001'    // 本地socketio 地址
 // const SERVER = 'http://parkingtest.jietingtech.com'
 
 
 
 const notice_url = LOCAL+'/server/notice/' // 推送本地url
+
 
 function post(url, params, callback){
 	request({
@@ -44,6 +48,7 @@ function post(url, params, callback){
 
 var ids = []
 var sockets = []
+var network = false
 
 
 app.get('/', function(req, res){
@@ -63,6 +68,10 @@ app.get('/', function(req, res){
      return  res.send({'success': true})     
 });
 
+app.get('/network', function(req, res){
+	return res.send({'network': network})
+})
+
 http.listen(port, function(){
   console.log('listening on *:'+port);
 });
@@ -76,15 +85,27 @@ function connect_server(){
 	
 	post( LOCAL + '/sync/parkinglot/ids/', '{}', (data)=>{  // 获取本地所有车场
 		if(data.ids){ 
+			
 			for (var i = data.ids.length - 1; i >= 0; i--) {
 				console.info(data.ids[i])
-				
+
 				var socket = io(server_url+data.ids[i].uuid)   // 创建socketio连接, 每个车场一个连接
-				
+				 
 				socket.on('chat message', function(msg){
 				 	console.info(msg)
 				 	post(notice_url, msg, ()=>{console.info('node -> 本地 : 成功')}) 
 				});
+
+				socket.on('disconnect', function(){
+					console.info('network down')
+			        network = false
+			    });
+
+				socket.on('connect', function(){
+					console.info('network ok')
+			        network = true
+			        post(LOCAL+'/realtime/upload/offline/', '', ()=>{console.info('续传离线记录')}) 
+			    });
 
 				sockets.push(socket)
 				ids.push(data.ids[i].uuid)
