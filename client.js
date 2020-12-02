@@ -13,9 +13,9 @@ const port = 3000
 
 
 const LOCAL = 'http://localhost:8000'     // 本地服务器 地址
-const SERVER = 'http://127.0.0.1:3001'    // 本地socketio 地址
+// const SERVER = 'http://127.0.0.1:3001'    // 本地socketio 地址
 
-// const SERVER = 'http://47.100.40.50:3001'    // 本地socketio 地址
+const SERVER = 'http://47.100.40.50:3001'    // 本地socketio 地址
 // const SERVER = 'http://parkingtest.jietingtech.com'
 
 
