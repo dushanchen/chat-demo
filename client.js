@@ -58,7 +58,7 @@ app.get('/', function(req, res){
     if(ids.indexOf(id)==-1){
     	var socket = io(server_url+id)   // 创建socketio连接, 每个车场一个连接
 		socket.on('chat message', function(msg){
-		 	post(notice_url, msg, ()=>{console.info('node -> 本地 : 成功')}) 
+		 	post(m, msg, ()=>{console.info('node client -> django Local : success')}) 
 		});
 		sockets.push(socket)
 		ids.push(id)
@@ -93,7 +93,7 @@ function connect_server(){
 				 
 				socket.on('chat message', function(msg){
 				 	console.info(msg)
-				 	post(notice_url, msg, ()=>{console.info('node -> 本地 : 成功')}) 
+				 	post(notice_url, msg, ()=>{console.info('node cilent-> django Local : success')}) 
 				});
 
 				socket.on('disconnect', function(){
@@ -104,7 +104,7 @@ function connect_server(){
 				socket.on('connect', function(){
 					console.info('network ok')
 			        network = true
-			        post(LOCAL+'/realtime/upload/offline/', '', ()=>{console.info('续传离线记录')}) 
+			        post(LOCAL+'/realtime/upload/offline/', '', ()=>{console.info('upload offline...')}) 
 			    });
 
 				sockets.push(socket)
