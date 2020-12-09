@@ -30,7 +30,7 @@ app.post('/publish', function(req, res){         // 接收 server 推送的消�
     console.info(req.body)
     
     var id = req.body.id
-    console.info(ParkingLots)
+     
     try{
         var parkinglot = ParkingLots[id]
         parkinglot.emit('chat message', req.body.body);     // 数据下发到本地 node client
@@ -61,16 +61,16 @@ io.on('connection', function(socket){
   
     let parkinglot_id = socket.handshake.query.parkinglot_id;
     ParkingLots[parkinglot_id] = socket
-
+    console.log(parkinglot_id)
     console.log('a user connected');
-    console.log(ParkingLots);
+     
     socket.broadcast.emit('hi');
       
       
     socket.on('chat message', function(msg){
      
         io.emit('chat message', msg);
-        console.info('server -> client : 成功')
+        console.info('server -> client : success')
         
     });
 
@@ -82,6 +82,7 @@ io.on('connection', function(socket){
 
   
     socket.on('disconnect', function(cam_id){
+        console.log(cam_id)
         console.log('user disconnected');
         delete(ParkingLots[cam_id])
     });
