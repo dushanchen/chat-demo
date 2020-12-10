@@ -51,8 +51,8 @@ var sockets = []
 var network = false
 
 
-app.get('/', function(req, res){
-    var myobj = urlib.parse(req.url,true); 
+app.get('/', function(req, res){         // 同步车场后调用
+    var myobj = urlib.parse(req.url,true);   
     console.info(myobj.query.id)  
     var id = myobj.query.id
     if(ids.indexOf(id)==-1){
@@ -60,15 +60,26 @@ app.get('/', function(req, res){
 		socket.on('chat message', function(msg){
 		 	post(m, msg, ()=>{console.info('node client -> django Local : success')}) 
 		});
+        socket.on('disconnect', function(){
+			console.info('network down')
+	        network = false
+	    });
+
+		socket.on('connect', function(){
+			console.info('network ok')
+	        network = true
+	        post(LOCAL+'/realtime/upload/offline/', '', ()=>{console.info('upload offline...')}) 
+	    });
+
 		sockets.push(socket)
 		ids.push(id)
-		console.info(sockets)
-		console.info(ids)
+		network = true
+		console.info('parkinglot_ids: ', ids)
     }
      return  res.send({'success': true})     
 });
 
-app.get('/network', function(req, res){
+app.get('/network', function(req, res){   // 获取网络状
 	return res.send({'network': network})
 })
 
