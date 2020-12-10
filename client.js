@@ -51,25 +51,32 @@ var sockets = []
 var network = false
 
 
+function define_con(socket){
+	socket.on('chat message', function(msg){
+	 	console.info(msg)
+	 	post(notice_url, msg, ()=>{console.info('node cilent-> django Local : success')}) 
+	});
+
+	socket.on('disconnect', function(){
+		console.info('network down')
+        network = false
+    });
+
+	socket.on('connect', function(){
+		console.info('network ok')
+        network = true
+        post(LOCAL+'/realtime/upload/offline/', '', ()=>{console.info('upload offline...')}) 
+    });
+
+}
+
 app.get('/', function(req, res){         // 同步车场后调用
     var myobj = urlib.parse(req.url,true);   
     console.info(myobj.query.id)  
     var id = myobj.query.id
     if(ids.indexOf(id)==-1){
     	var socket = io(server_url+id)   // 创建socketio连接, 每个车场一个连接
-		socket.on('chat message', function(msg){
-		 	post(m, msg, ()=>{console.info('node client -> django Local : success')}) 
-		});
-        socket.on('disconnect', function(){
-			console.info('network down')
-	        network = false
-	    });
-
-		socket.on('connect', function(){
-			console.info('network ok')
-	        network = true
-	        post(LOCAL+'/realtime/upload/offline/', '', ()=>{console.info('upload offline...')}) 
-	    });
+		define_con(socket)
 
 		sockets.push(socket)
 		ids.push(id)
@@ -101,23 +108,8 @@ function connect_server(){
 				console.info(data.ids[i])
 
 				var socket = io(server_url+data.ids[i].uuid)   // 创建socketio连接, 每个车场一个连接
-				 
-				socket.on('chat message', function(msg){
-				 	console.info(msg)
-				 	post(notice_url, msg, ()=>{console.info('node cilent-> django Local : success')}) 
-				});
-
-				socket.on('disconnect', function(){
-					console.info('network down')
-			        network = false
-			    });
-
-				socket.on('connect', function(){
-					console.info('network ok')
-			        network = true
-			        post(LOCAL+'/realtime/upload/offline/', '', ()=>{console.info('upload offline...')}) 
-			    });
-
+				define_con(socket)
+				
 				sockets.push(socket)
 				ids.push(data.ids[i].uuid)
 			}	
