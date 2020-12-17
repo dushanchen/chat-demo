@@ -13,8 +13,8 @@ const port = 3000
 
 
 const LOCAL = 'http://localhost:8000'     // 本地服务器 地址
-// const SERVER = 'http://127.0.0.1:3001'    // 本地socketio 地址
 
+// const SERVER = 'http://127.0.0.1:3001'    // 本地socketio 地址
 const SERVER = 'http://47.100.40.50:3001'    // 本地socketio 地址
 // const SERVER = 'http://parkingtest.jietingtech.com'
 
@@ -51,7 +51,7 @@ var sockets = []
 var network = false
 
 
-function define_con(socket){
+function define_con(socket, parkinglot_id){    // 与云端建立socket 连接, 同时告诉本地端进行数据补传操作
 	socket.on('chat message', function(msg){
 	 	console.info(msg)
 	 	post(notice_url, msg, ()=>{console.info('node cilent-> django Local : success')}) 
@@ -65,7 +65,7 @@ function define_con(socket){
 	socket.on('connect', function(){
 		console.info('network ok')
         network = true
-        post(LOCAL+'/realtime/upload/offline/', '', ()=>{console.info('upload offline...')}) 
+        post(LOCAL+'/realtime/upload/offline/', JSON.stringify({parkinglot_id: parkinglot_id}) , ()=>{console.info('upload offline...')})  // 告诉本地端开始补传离线数据
     });
 
 }
@@ -76,7 +76,7 @@ app.get('/', function(req, res){         // 同步车场后调用
     var id = myobj.query.id
     if(ids.indexOf(id)==-1){
     	var socket = io(server_url+id)   // 创建socketio连接, 每个车场一个连接
-		define_con(socket)
+		define_con(socket, id)
 
 		sockets.push(socket)
 		ids.push(id)
@@ -108,7 +108,7 @@ function connect_server(){
 				console.info(data.ids[i])
 
 				var socket = io(server_url+data.ids[i].uuid)   // 创建socketio连接, 每个车场一个连接
-				define_con(socket)
+				define_con(socket, data.ids[i].uuid)
 				
 				sockets.push(socket)
 				ids.push(data.ids[i].uuid)

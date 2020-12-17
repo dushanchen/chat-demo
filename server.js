@@ -14,6 +14,27 @@ app.set('views', __dirname + '/views');
 var ParkingLots = {}
  
 
+function post(url, params, callback){
+    request({
+        url: url,//请求路径
+        method: "POST",//请求方式，默认为get
+        headers: {//设置请求头
+            "content-type": "application/json",
+        },
+        body: params//post参数字符串
+    }, function(error, response, body) {
+        if (!error && response.statusCode == 200) {
+            body = JSON.parse(body)
+            callback(body)
+        }
+        if ( error ) {
+            console.error(error) 
+        }
+    }); 
+}
+
+
+
 app.get('/', function(req, res){
     var myobj = urlib.parse(req.url,true);
     // console.info(myobj.query.id)
@@ -33,15 +54,21 @@ app.post('/publish', function(req, res){         // 接收 server 推送的消�
      
     try{
         var parkinglot = ParkingLots[id]
-        parkinglot.emit('chat message', req.body.body);     // 数据下发到本地 node client
 
-        console.info(['下发数据到: ', id , ', 内容: ', req.body.body].join(''))
-        res.send({'success': true}) 
+        if(! parkinglot) {
+            console.error('Error: '+ id + ' 未连接!')
+            return res.send({'success': false}) 
+
+        }
+
+        parkinglot.emit('chat message', req.body.body);     // 数据下发到本地 node client
+        console.info(['Success: 下发数据到: ', id , ', 内容: ', req.body.body].join(''))
+        return res.send({'success': true}) 
 
     }catch(err){
         console.error(err)
-        console.error(['下发数据报错: ', err , ', 内容: ', req.body].join(''))
-        res.send({'success': false}) 
+        console.error(['Error: 下发数据报错: ', err , ', 内容: ', req.body].join(''))
+        return res.send({'success': false}) 
     }
     
 });
@@ -61,11 +88,8 @@ io.on('connection', function(socket){
   
     let parkinglot_id = socket.handshake.query.parkinglot_id;
     ParkingLots[parkinglot_id] = socket
-    console.log(parkinglot_id)
-    console.log('a user connected');
-     
-    socket.broadcast.emit('hi');
-      
+    console.info(parkinglot_id + ' connected');
+
       
     socket.on('chat message', function(msg){
      
@@ -82,14 +106,13 @@ io.on('connection', function(socket){
 
   
     socket.on('disconnect', function(cam_id){
-        console.log(cam_id)
-        console.log('user disconnected');
-        delete(ParkingLots[cam_id])
+        console.info(parkinglot_id + ' disconnected');
+        delete(ParkingLots[parkinglot_id])
     });
 
 
 });
 
 http.listen(3001, function(){
-  console.log('listening on *:3001');
+  console.info('listening on *:3001');
 });
